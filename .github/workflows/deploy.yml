@@ -1,0 +1,58 @@
+# main dalına her push'ta siteyi derleyip GitHub Pages'te yayınlar.
+# Yayın adresi: https://zeynep-kara.github.io/pomodoro-3d/
+name: GitHub Pages'e yayınla
+
+on:
+  push:
+    branches: [main]
+  # Actions sekmesinden elle de çalıştırılabilsin.
+  workflow_dispatch:
+
+# Pages'e yükleyebilmek için gereken izinler.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Arka arkaya iki push olursa eski yayın iptal edilsin, sadece en yenisi yayınlansın.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Kodu indir
+        uses: actions/checkout@v5
+
+      - name: Node.js kur
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Paketleri kur
+        run: npm ci
+
+      - name: Siteyi derle
+        run: npm run build
+
+      - name: Pages'i hazırla
+        uses: actions/configure-pages@v5
+
+      - name: dist klasörünü yükle
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Yayınla
+        id: deployment
+        uses: actions/deploy-pages@v4

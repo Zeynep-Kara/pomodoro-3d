@@ -2,6 +2,8 @@
 
 Ana karakteri sevimli bir 3D domates olan, tarayıcıda çalışan bir Pomodoro zamanlayıcısı.
 
+**▶ Canlı dene: [zeynep-kara.github.io/pomodoro-3d](https://zeynep-kara.github.io/pomodoro-3d/)**
+
 *Pomodoro* İtalyancada "domates" demek. Teknik, adını mutfaktaki domates şeklindeki zamanlayıcılardan alıyor. Bu projede o domates, ekranın ortasında bir kaidenin üstünde duran, iri gözlü küçük bir karaktere dönüşüyor.
 
 ![Pomodoro ekran görüntüsü](docs/screenshot.png)
@@ -34,13 +36,15 @@ npm install
 npm run dev
 ```
 
-Terminalde çıkan adresi (genelde `http://localhost:5173`) tarayıcıda aç.
+Terminalde çıkan adresi (genelde `http://localhost:5173/pomodoro-3d/`) tarayıcıda aç.
 
 Yayına hazır derleme için:
 
 ```bash
 npm run build
 ```
+
+`main` dalına yapılan her push, [GitHub Actions](.github/workflows/deploy.yml) ile siteyi otomatik olarak derleyip GitHub Pages'te yayınlar.
 
 > **Windows PowerShell notu:** `npm` komutu "running scripts is disabled" hatası verirse `npm` yerine `npm.cmd` yaz (`npm.cmd install`, `npm.cmd run dev`).
 
