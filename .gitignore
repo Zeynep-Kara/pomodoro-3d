@@ -1,0 +1,11 @@
+node_modules
+dist
+
+# Bu bilgisayara özel araç ayarları (Claude Code önizleme yapılandırması)
+.claude/
+
+# İşletim sistemi ve editör dosyaları
+.DS_Store
+Thumbs.db
+.vscode/
+*.log

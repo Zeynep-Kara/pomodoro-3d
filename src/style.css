@@ -1,0 +1,192 @@
+* { box-sizing: border-box; margin: 0; }
+html, body, #root { height: 100%; }
+/* Arka plan: src/3dComponent/colors.js'teki background ile AYNI olmalı (sis bu renge karışıyor). */
+body {
+  background: #f7d9c4;
+  color: #7a3b2e;
+  font-family: 'Fredoka', system-ui, sans-serif;
+}
+.app { position: relative; height: 100%; overflow: hidden; }
+/* Canvas bu div'in içine eklenecek ve onun boyutunu alacak. */
+.scene { position: absolute; inset: 0; }
+
+/* Süre yazısı ve butonlar: ana canvas'ın üstünde. Dar ekranda üstte ortada, geniş ekranda solda (en alttaki @media).
+   pointer-events: none → boşluğa yapılan tıklamalar alttaki canvas'a geçsin. */
+.hud {
+  position: absolute;
+  top: clamp(16px, 5vh, 48px);
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  pointer-events: none;
+}
+.hud-mode {
+  padding: 4px 14px;
+  border-radius: 999px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+}
+.hud-mode--work { background: #e8513e; }
+.hud-mode--break { background: #6cbf4f; }
+.hud-mode--paused { background: #a8857a; } /* sönük, "bekliyor" hissi veren bir ton */
+.hud-time {
+  font-size: clamp(48px, 12vw, 88px);
+  font-weight: 600;
+  line-height: 1;
+  /* Rakamlar eşit genişlikte olsun, süre akarken yazı titremesin. */
+  font-variant-numeric: tabular-nums;
+}
+
+/* 3D butonların küçük canvas'ı. .hud tıklamaları geçirmiyor, burası tıklanabilir olmalı. */
+.controls {
+  width: 240px;
+  height: 80px;
+  margin-top: 8px;
+  pointer-events: auto;
+}
+
+.hint {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  right: 16px;
+  text-align: center;
+  font-size: 14px;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* HTML butonlar: 3D tuşlara benzesin diye altlarında koyu bir şerit (box-shadow) var.
+   Basınca (:active) buton aşağı iner, şerit incelir. */
+.key-button {
+  font: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  background: #ffb547;
+  border: none;
+  border-radius: 14px;
+  padding: 10px 18px;
+  box-shadow: 0 5px 0 #d9861c;
+  cursor: pointer;
+  transition: transform 0.08s, box-shadow 0.08s;
+}
+.key-button:active {
+  transform: translateY(4px);
+  box-shadow: 0 1px 0 #d9861c;
+}
+/* Klavyeyle gezerken hangi butonda olduğun görünsün. */
+.key-button:focus-visible {
+  outline: 3px solid #7a3b2e;
+  outline-offset: 3px;
+}
+.key-button--light {
+  color: #7a3b2e;
+  background: #fff6ee;
+  box-shadow: 0 5px 0 #e2c3ad;
+}
+.key-button--light:active { box-shadow: 0 1px 0 #e2c3ad; }
+
+/* Ayarlar: sağ üstte, her şeyin üstünde. */
+.settings {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+.settings-toggle {
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+}
+.gear-hole { fill: #fff6ee; } /* dişlinin ortasındaki delik: butonun rengiyle aynı */
+.settings-panel {
+  margin-top: 14px;
+  width: min(300px, calc(100vw - 32px));
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: #fff8f2;
+  border-radius: 22px;
+  box-shadow: 0 6px 0 #e9cbb6, 0 18px 40px rgba(122, 59, 46, 0.18);
+}
+.settings-panel h2 { font-size: 20px; }
+.settings-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-weight: 500;
+}
+.settings-input {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.settings-input input {
+  width: 72px;
+  padding: 8px;
+  font: inherit;
+  font-size: 18px;
+  font-weight: 600;
+  text-align: center;
+  color: inherit;
+  background: #fff;
+  border: 2px solid #ecd0bd;
+  border-radius: 12px;
+}
+.settings-input input:focus {
+  outline: none;
+  border-color: #ffb547;
+}
+.settings-note {
+  font-size: 13px;
+  opacity: 0.7;
+}
+.settings-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+/* Dokunmatik cihazlarda (fare yok, büyük ihtimalle klavye de yok) klavye ipucunu gizle. */
+@media (hover: none) {
+  .hint { display: none; }
+}
+
+/* Geniş ekran: yazılar solda, dikeyde ortada. Sahne de sağa kayıyor.
+   DİKKAT: 700px eşiği src/3dComponent/world/camera.js'teki WIDE_SCREEN ile AYNI olmalı. */
+@media (min-width: 700px) {
+  .hud {
+    top: 50%;
+    left: clamp(32px, 7vw, 120px);
+    right: auto;
+    transform: translateY(-60%); /* tam ortanın biraz üstü */
+    align-items: flex-start;
+  }
+  .hud-time {
+    font-size: clamp(64px, 9vw, 120px);
+  }
+  .controls {
+    width: 300px;
+    height: 100px;
+    margin-top: 16px;
+    margin-left: -12px; /* canvas'ın kendi kenar boşluğunu telafi et, yazıyla hizalansın */
+  }
+  .hint {
+    left: clamp(32px, 7vw, 120px);
+    right: auto;
+    text-align: left;
+  }
+}
